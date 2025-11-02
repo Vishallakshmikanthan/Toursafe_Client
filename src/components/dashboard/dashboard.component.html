@@ -1,0 +1,257 @@
+<div class="bg-gray-800 border border-gray-700 rounded-lg p-6 w-full h-full flex flex-col space-y-4 shadow-xl">
+  @if (phase() && scenario()) {
+    <!-- Header -->
+    <div class="flex justify-between items-center border-b border-gray-700 pb-3">
+      <div>
+        <h2 class="text-2xl font-bold text-white">Authority Dashboard</h2>
+        <p class="text-sm text-gray-400">Real-Time Emergency Monitoring</p>
+      </div>
+      <div class="text-right">
+        <p class="text-sm font-mono text-gray-300">{{ scenario().user_id }}</p>
+        <p class="text-xs text-gray-500">{{ scenario().local_authority }}</p>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow">
+      <!-- Left Column -->
+      <div class="md:col-span-2 flex flex-col space-y-4">
+        <!-- Alert Status & Risk Gauge / Priority -->
+        <div class="bg-gray-900/50 p-4 rounded-lg">
+            @if (riskScore(); as scoreInfo) {
+              <!-- Mountain Rescue Risk Gauge -->
+              <div class="flex items-center space-x-6">
+                <div class="relative w-28 h-28">
+                  <svg class="w-full h-full" viewBox="0 0 100 100">
+                    <circle class="text-gray-700" stroke-width="8" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50"/>
+                    <circle
+                      class="transform -rotate-90 origin-center transition-all duration-500"
+                      stroke-width="8"
+                      [style.stroke-dasharray]="gaugeAttributes().circumference"
+                      [style.stroke-dashoffset]="gaugeAttributes().offset"
+                      [style.stroke]="gaugeAttributes().color"
+                      stroke-linecap="round"
+                      fill="transparent"
+                      r="42" cx="50" cy="50"
+                    />
+                  </svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span class="text-3xl font-bold" [style.color]="gaugeAttributes().color">{{ scoreInfo.value }}</span>
+                    <span class="text-xs text-gray-400 -mt-1">RISK</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-400">Alert Status</h3>
+                  <p class="text-2xl font-bold" [style.color]="gaugeAttributes().color">{{ scoreInfo.text }}</p>
+                </div>
+              </div>
+            } @else {
+              <!-- Urban Incident Priority -->
+              <div class="flex items-center space-x-6">
+                 <div class="w-28 h-28 flex items-center justify-center">
+                    <div class="w-24 h-24 rounded-full flex items-center justify-center bg-gray-700 border-4 border-orange-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                 </div>
+                 <div>
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-400">Incident Status</h3>
+                    <p class="text-2xl font-bold text-orange-400">{{ phase().authority_dashboard_update.alert_type }}</p>
+                 </div>
+              </div>
+            }
+        </div>
+        
+        <!-- Map View -->
+        <div class="bg-gray-900/50 p-4 rounded-lg flex-grow flex flex-col">
+          <div class="flex items-center text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <span>{{ isMountainRescueScenario() ? 'Map & Location View' : 'Incident Location' }}</span>
+          </div>
+          <div class="flex-grow bg-gray-700 rounded-md p-4 flex flex-col justify-center items-center text-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-cover bg-center opacity-20" [style.background-image]="isMountainRescueScenario() ? 'url(https://i.imgur.com/2szp3p2.jpeg)' : 'url(https://i.imgur.com/K7k0d5B.jpeg)'"></div>
+            
+            <!-- Tourist Cluster Visualization -->
+            @if (showTouristCluster()) {
+              <div class="absolute inset-0 z-0" aria-hidden="true">
+                <!-- These represent other tourists in the cluster. "Cluster Density: LOW" -->
+                <span class="absolute h-2 w-2 rounded-full bg-cyan-300 animate-pulse" style="top: 40%; left: 45%; animation-duration: 2s;"></span>
+                <span class="absolute h-2 w-2 rounded-full bg-cyan-300 animate-pulse" style="top: 55%; left: 60%; animation-duration: 2.5s; animation-delay: 0.5s;"></span>
+                <span class="absolute h-2 w-2 rounded-full bg-cyan-300 animate-pulse" style="top: 48%; left: 38%; animation-duration: 1.8s; animation-delay: 0.2s;"></span>
+              </div>
+            }
+
+            <!-- Geo-Fence Visualization -->
+            @if (geoFenceState(); as fence) {
+              <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <svg viewBox="0 0 200 200" class="w-4/5 h-4/5">
+                    <circle 
+                        cx="100" cy="100" r="80" 
+                        stroke-width="4" 
+                        fill="none" 
+                        stroke-dasharray="10 5"
+                        [class]="fence.strokeClass"
+                    />
+                </svg>
+                <div [class]="fence.textClass" class="absolute top-2 left-2 bg-gray-900/70 px-2 py-1 rounded text-xs font-mono tracking-widest">
+                  {{ fence.label }}
+                </div>
+              </div>
+            }
+
+            <!-- Tourist Location -->
+            <div class="relative z-10 flex flex-col items-center">
+              <span class="relative flex h-5 w-5 mb-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-5 w-5 bg-red-500 border-2 border-white"></span>
+              </span>
+              <p class="font-mono text-lg text-white">{{ scenario().location }}</p>
+              <p class="text-gray-300 mt-1 text-sm">{{ phase().authority_dashboard_update.map_view }}</p>
+            </div>
+
+            <!-- Rescue Asset -->
+            @if (showRescueAsset()) {
+              <div class="absolute top-1/4 left-1/4 z-20 animate-pulse text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-300" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10.894 2.553a1 1 0 00-1.789 0l-2 4A1 1 0 008 8h4a1 1 0 00.894-1.447l-2-4zM10 12a1 1 0 100-2 1 1 0 000 2z"/>
+                  <path fill-rule="evenodd" d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm2 0a6 6 0 1112 0 6 6 0 01-12 0z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-xs text-blue-300 font-bold">SDRF-1</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Column -->
+      <div class="md:col-span-1 flex flex-col space-y-4">
+        @if (phase().authority_dashboard_update.risk_analysis; as risk_analysis) {
+          <div class="bg-gray-900/50 p-4 rounded-lg">
+            <h3 class="flex items-center text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              <span>Risk Analysis</span>
+            </h3>
+            <p class="text-gray-200">{{ risk_analysis }}</p>
+          </div>
+        }
+
+        @if (phase().authority_dashboard_update.incident_details; as incident_details) {
+          <div class="bg-gray-900/50 p-4 rounded-lg">
+            <h3 class="flex items-center text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>Incident Details</span>
+            </h3>
+            <p class="text-gray-200">{{ incident_details }}</p>
+          </div>
+        }
+        
+        <!-- Blockchain Digital ID Panel -->
+        <div class="bg-gray-900/50 p-4 rounded-lg">
+          <h3 class="flex items-center text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            <span>Blockchain Digital ID</span>
+          </h3>
+          @switch (phase().name.split(':')[0]) {
+            @case ('Phase 1') {
+              <div class="space-y-2">
+                <div>
+                  <p class="text-xs text-gray-400">Status</p>
+                  <p class="font-medium text-yellow-400">Pending Verification</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400">Blockchain ID</p>
+                  <p class="font-mono text-gray-200">{{ scenario().user_id.split(' ')[0] }}</p>
+                </div>
+                 <p class="text-xs text-gray-500 pt-2">Awaiting SOS or Authority Request to unlock data.</p>
+              </div>
+            }
+            @case ('Phase 2') {
+              @if (verificationProgress() !== 'complete') {
+                <div class="space-y-2 animate-fade-in">
+                  <div class="flex items-center space-x-2 text-sm transition-opacity duration-300" [class]="verificationProgress() === 'initial' ? 'opacity-50' : 'opacity-100'">
+                    @if (verificationProgress() === 'querying') {
+                      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                      <span class="text-blue-400">Querying Hyperledger Fabric...</span>
+                    } @else {
+                      <svg class="h-4 w-4 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                      <span class="text-gray-400 line-through">Queried Hyperledger Fabric</span>
+                    }
+                  </div>
+                  <div class="flex items-center space-x-2 text-sm transition-opacity duration-300" [class]="verificationProgress() !== 'verifying' && verificationProgress() !== 'unlocked' && verificationProgress() !== 'complete' ? 'opacity-50' : 'opacity-100'">
+                    @if (verificationProgress() === 'verifying') {
+                      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                      <span class="text-blue-400">Verifying Transaction Hash...</span>
+                    } @else {
+                      <svg class="h-4 w-4 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                      <span class="text-gray-400 line-through">Verified Transaction Hash</span>
+                    }
+                  </div>
+                  <div class="flex items-center space-x-2 text-sm transition-opacity duration-300" [class]="verificationProgress() !== 'unlocked' && verificationProgress() !== 'complete' ? 'opacity-50' : 'opacity-100'">
+                    @if (verificationProgress() === 'unlocked') {
+                      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                      <span class="text-blue-400">Unlocking Emergency Data...</span>
+                    } @else {
+                      <svg class="h-4 w-4 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                      <span class="text-gray-400 line-through">Unlocked Emergency Data</span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                 <p class="text-gray-200 animate-fade-in">{{ phase().authority_dashboard_update.blockchain_data_panel }}</p>
+              }
+            }
+            @case ('Phase 3') {
+              <div class="space-y-3">
+                 <p class="text-gray-200">{{ phase().authority_dashboard_update.blockchain_data_panel }}</p>
+                 <div class="border-t border-gray-700/50 pt-2">
+                    <p class="text-xs text-gray-400">Audit Trail</p>
+                    <p class="font-mono text-xs text-green-400">TX_LOG: 0x5a2b...c7d9</p>
+                 </div>
+              </div>
+            }
+          }
+        </div>
+
+        @if (phase().authority_dashboard_update.case_status; as case_status) {
+          <div class="bg-gray-900/50 p-4 rounded-lg">
+            <h3 class="flex items-center text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+              <span>Case Status</span>
+            </h3>
+            <p class="text-gray-200">{{ case_status }}</p>
+          </div>
+        }
+        
+        @if (phase().authority_dashboard_update.documentation_status; as documentation_status) {
+          <div class="bg-gray-900/50 p-4 rounded-lg">
+            <h3 class="flex items-center text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <span>Documentation Status</span>
+            </h3>
+            <p class="text-gray-200">{{ documentation_status }}</p>
+          </div>
+        }
+        
+        @if (phase().authority_dashboard_update.gen_ai_guidance; as gen_ai_guidance) {
+          <div class="bg-gray-900/50 p-4 rounded-lg">
+            <h3 class="flex items-center text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd" /></svg>
+              <span>Gen AI Guidance</span>
+            </h3>
+            <p class="text-gray-200">{{ gen_ai_guidance }}</p>
+          </div>
+        }
+        @if (phase().authority_dashboard_update.system_audit_log; as system_audit_log) {
+          <div class="bg-gray-900/50 p-4 rounded-lg">
+            <h3 class="flex items-center text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>System Audit Log</span>
+            </h3>
+            <p class="text-gray-200 text-sm font-mono">{{ system_audit_log }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <p>Loading dashboard data...</p>
+  }
+</div>

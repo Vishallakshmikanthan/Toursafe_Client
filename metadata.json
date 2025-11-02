@@ -1,0 +1,5 @@
+{
+  "name": "TourSafe",
+  "description": "A web application that simulates a tourist emergency, showcasing real-time updates on a mobile app and an authority dashboard, with AI-driven analysis for each phase of the crisis.",
+  "requestFramePermissions": []
+}

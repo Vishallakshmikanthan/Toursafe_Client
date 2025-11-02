@@ -1,0 +1,84 @@
+<div class="bg-black border-4 border-gray-600 rounded-4xl h-[700px] w-[350px] mx-auto p-4 flex flex-col shadow-2xl">
+  <!-- Notch -->
+  <div class="w-24 h-5 bg-black rounded-b-lg self-center absolute top-4"></div>
+  
+  <!-- Status bar -->
+  <div class="flex justify-between items-center text-xs text-gray-300 pt-4 px-2">
+    <span>9:41 AM</span>
+    <div class="flex items-center space-x-1">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.5 5.5a.5.5 0 01.5.5v8a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v-8a.5.5 0 01.5-.5h1zM14 8.5a.5.5 0 01.5.5v2a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v-2a.5.5 0 01.5-.5h1zM10.5 11a.5.5 0 01.5.5v-2a.5.5 0 01-.5-.5h-1a.5.5 0 01-.5.5v2a.5.5 0 01.5.5h1zM7 13.5a.5.5 0 01.5.5v-8a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v8a.5.5 0 01.5-.5h1zM18 4a1 1 0 00-1-1h-1a1 1 0 00-1 1v12a1 1 0 001 1h1a1 1 0 001-1V4zM13.5 7a1 1 0 00-1-1h-1a1 1 0 00-1 1v6a1 1 0 001 1h1a1 1 0 001-1V7zM9 10a1 1 0 00-1-1H7a1 1 0 00-1 1v3a1 1 0 001 1h1a1 1 0 001-1v-3zM4.5 12a1 1 0 00-1-1h-1a1 1 0 00-1 1v1a1 1 0 001 1h1a1 1 0 001-1v-1z"/></svg>
+      <span>LTE</span>
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.5 6.5a.5.5 0 00-.5-.5h-10a.5.5 0 00-.5.5v7a.5.5 0 00.5.5h10a.5.5 0 00.5-.5v-7zM17.5 7a.5.5 0 000-1h-15a.5.5 0 000 1h15z" clip-rule="evenodd"/></svg>
+    </div>
+  </div>
+
+  <div class="flex-grow flex flex-col justify-between bg-gray-800 rounded-3xl mt-4 p-4 text-center">
+    @if (data()) {
+      <!-- Header -->
+      <div class="py-3 rounded-lg text-white font-bold tracking-wider uppercase" [class]="getHeaderClass()">
+        {{ data()!.header_status }}
+      </div>
+
+      @if (isIncidentReport()) {
+        <!-- Incident Report View -->
+        <div class="flex-grow flex flex-col items-center justify-center space-y-4 px-2 text-left">
+           <div class="w-full">
+                <p class="text-gray-300 text-center mb-4">{{ data()!.notification_text }}</p>
+                @if (data()!.report_title) {
+                    <div class="bg-gray-700/50 rounded-lg p-3">
+                        <label class="text-xs text-gray-400">Incident Type</label>
+                        <p class="font-semibold text-white">{{ data()!.report_title }}</p>
+                    </div>
+                }
+                 @if (data()!.report_description) {
+                    <div class="bg-gray-700/50 rounded-lg p-3 mt-3">
+                        <label class="text-xs text-gray-400">Description</label>
+                        <p class="text-gray-200">{{ data()!.report_description }}</p>
+                    </div>
+                }
+                @if (data()!.report_update_prompt) {
+                    <div class="bg-gray-700/50 rounded-lg p-3 mt-3 border border-dashed border-blue-400">
+                        <label class="text-xs text-blue-300">Update Requested</label>
+                        <p class="text-gray-200 italic placeholder-gray-400 mt-1">{{ data()!.report_update_prompt }}</p>
+                    </div>
+                }
+                @if (data()!.report_update_content) {
+                    <div class="bg-green-900/50 rounded-lg p-3 mt-3 border border-green-500">
+                        <label class="text-xs text-green-400">Your Submitted Update</label>
+                        <p class="text-gray-200">{{ data()!.report_update_content }}</p>
+                    </div>
+                }
+           </div>
+        </div>
+      } @else {
+        <!-- Emergency SOS View -->
+        <div class="flex-grow flex flex-col items-center justify-center space-y-4 px-2">
+          <div class="w-20 h-20 rounded-full flex items-center justify-center" [class]="getHeaderClass() + ' ' + (shouldPulse() ? 'animate-pulse' : '')">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <p class="text-gray-200 text-lg">
+            {{ data()!.notification_text }}
+          </p>
+        </div>
+      }
+
+      <!-- Action Button -->
+      <div class="mb-4">
+        <button class="w-full py-4 rounded-xl font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 transition-all duration-200 transform active:scale-95"
+          [class]="isIncidentReport() ? 'bg-orange-500 text-white hover:bg-orange-400' : 'bg-gray-700 text-gray-100 hover:bg-gray-600 active:bg-gray-500'">
+          {{ data()!.action_button }}
+        </button>
+      </div>
+      
+      <!-- Geo-Fencing Status / Location Tag -->
+      <div class="border-t border-gray-700 pt-3">
+        <p class="text-xs text-gray-400">{{ isIncidentReport() ? 'LOCATION TAG' : 'GEO-FENCING STATUS' }}</p>
+        <p class="text-sm font-medium text-gray-200">{{ data()!.geo_fencing_status }}</p>
+      </div>
+    } @else {
+      <p>Loading mobile data...</p>
+    }
+  </div>
+</div>
